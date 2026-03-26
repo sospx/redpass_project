@@ -4,8 +4,8 @@ import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from db.database import async_session_maker
-from db.models import User
-from schemas.password import PasswordCheckRequest, PasswordCheckResponse
+from db.models import User, CheckHistory
+from schemas.password import PasswordCheckRequest, PasswordCheckResponse, CheckHistoryResponse
 from core.checker import analyze_strength, check_leaks, mask_password
 from core.security import SECRET_KEY, ALGORITHM
 from routers.auth import get_db
@@ -42,20 +42,46 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
 @router.post("/check", response_model=PasswordCheckResponse)
 async def check_password(
         request: PasswordCheckRequest,
-        current_user: User = Depends(get_current_user)
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
 ):
-    """
-    Принимает пароль, оценивает его стойкость и проверяет по базам утечек.
-    Доступно только авторизованным пользователям.
-    """
     strength_data = analyze_strength(request.password)
     leak_count = await check_leaks(request.password)
     masked = mask_password(request.password)
+    is_leaked = leak_count > 0
+
+    history_record = CheckHistory(
+        user_id=current_user.id,
+        masked_password=masked,
+        score=strength_data["score"],
+        crack_time=strength_data["crack_time"],
+        is_leaked=is_leaked,
+        leak_count=leak_count
+    )
+    db.add(history_record)
+    await db.commit()
 
     return PasswordCheckResponse(
         masked_password=masked,
         score=strength_data["score"],
         crack_time=strength_data["crack_time"],
-        is_leaked=leak_count > 0,
+        is_leaked=is_leaked,
         leak_count=leak_count
     )
+
+
+@router.get("/history", response_model=list[CheckHistoryResponse])
+async def get_history(
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+):
+    """
+    Возвращает историю проверок текущего авторизованного пользователя.
+    """
+    result = await db.execute(
+        select(CheckHistory)
+        .where(CheckHistory.user_id == current_user.id)
+        .order_by(CheckHistory.checked_at.desc())
+    )
+    history = result.scalars().all()
+    return history
