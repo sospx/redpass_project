@@ -19,9 +19,10 @@ class CheckHistory(Base):
     __tablename__ = "check_history"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True) # Может быть анонимным
-    masked_password: Mapped[str] = mapped_column(String) # Например: P******3
-    score: Mapped[int] = mapped_column(Integer) # Оценка zxcvbn (0-4)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    masked_password: Mapped[str] = mapped_column(String)
+    score: Mapped[int] = mapped_column(Integer)
+    crack_time: Mapped[str] = mapped_column(String)
     is_leaked: Mapped[bool] = mapped_column(Boolean, default=False)
     leak_count: Mapped[int] = mapped_column(Integer, default=0)
     checked_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
