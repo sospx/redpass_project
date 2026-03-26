@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import auth
+from routers import auth, password
 
 
 app = FastAPI(
@@ -8,6 +8,7 @@ app = FastAPI(
     version="1.0.0"
 )
 app.include_router(auth.router)
+app.include_router(password.router)
 
 
 @app.get("/")
