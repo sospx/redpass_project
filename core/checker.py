@@ -21,19 +21,16 @@ async def check_leaks(password: str) -> int:
     sha1_hash = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
     prefix = sha1_hash[:5]
     suffix = sha1_hash[5:]
-
     url = f"https://api.pwnedpasswords.com/range/{prefix}"
     headers = {"User-Agent": "Redpass-FastAPI-Project"}
 
     async with httpx.AsyncClient(headers=headers) as client:
         try:
-            response = await client.get(url, timeout=10.0)
-            print(f"Ответ от HIBP: {response.status_code}")
+            response = await client.get(url, timeout=5.0)
             if response.status_code != 200:
-                print(f"⚠️ Ошибка сервера HIBP: {response.text}")
                 return 0
-        except httpx.RequestError as exc:
-            print(f"🚫 Ошибка сети (возможно нужна VPN): {exc}")
+        except httpx.RequestError:
+            # Если сеть заблокирована, просто считаем, что утечек нет
             return 0
 
     hashes = (line.split(':') for line in response.text.splitlines())
