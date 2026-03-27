@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from routers import auth, password
 
 
@@ -10,7 +12,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(password.router)
 
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 async def root():
-    return {"message": "API is running. Welcome to Redpass!"}
+    return FileResponse("static/index.html")
