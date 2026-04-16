@@ -66,6 +66,16 @@
                     </button>
                 </div>
 
+                <div id="strength-preview" class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-gray-600">
+                        <span>Предварительная стойкость</span>
+                        <span id="strength-label">Пока не оценено</span>
+                    </div>
+                    <div class="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+                        <div id="strength-bar" class="h-2 w-0 bg-gray-400 transition-all duration-200"></div>
+                    </div>
+                </div>
+
                 <div id="check-result" class="hidden mt-6 p-4 border rounded-lg bg-gray-50">
                     <h3 class="font-bold mb-2">Результат:</h3>
                     <p class="text-sm">Оценка: <span id="res-score" class="font-bold"></span> / 4</p>
