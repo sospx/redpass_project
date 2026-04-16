@@ -167,7 +167,6 @@ btnCheck.addEventListener('click', async () => {
         strengthBar.className = `h-2 transition-all duration-200 ${backendStrength.colorClass}`;
 
         loadHistory();
-        checkPasswordInput.value = '';
     } else if (res.status === 401) {
         btnLogout.click();
     }
