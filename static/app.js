@@ -13,12 +13,46 @@ const userEmailDisplay = document.getElementById('user-email-display');
 const btnLogout = document.getElementById('btn-logout');
 const checkPasswordInput = document.getElementById('check-password-input');
 const btnCheck = document.getElementById('btn-check');
+const strengthLabel = document.getElementById('strength-label');
+const strengthBar = document.getElementById('strength-bar');
 const checkResult = document.getElementById('check-result');
 const resScore = document.getElementById('res-score');
 const resTime = document.getElementById('res-time');
 const resLeak = document.getElementById('res-leak');
 const historyTableBody = document.getElementById('history-table-body');
 const btnRefreshHistory = document.getElementById('btn-refresh-history');
+
+function getStrengthByScore(score) {
+    if (score <= 0) {
+        return { label: 'Очень слабый', width: '20%', colorClass: 'bg-red-600' };
+    }
+    if (score === 1) {
+        return { label: 'Слабый', width: '40%', colorClass: 'bg-orange-500' };
+    }
+    if (score === 2) {
+        return { label: 'Средний', width: '60%', colorClass: 'bg-amber-500' };
+    }
+    if (score === 3) {
+        return { label: 'Надежный', width: '80%', colorClass: 'bg-lime-500' };
+    }
+    return { label: 'Очень надежный', width: '100%', colorClass: 'bg-green-600' };
+}
+
+function renderStrengthPreview(password) {
+    if (!password) {
+        strengthLabel.textContent = 'Пока не оценено';
+        strengthBar.style.width = '0%';
+        strengthBar.className = 'h-2 w-0 bg-gray-400 transition-all duration-200';
+        return;
+    }
+
+    const score = typeof zxcvbn === 'function' ? zxcvbn(password).score : 0;
+    const strength = getStrengthByScore(score);
+
+    strengthLabel.textContent = `${strength.label} (${score}/4)`;
+    strengthBar.style.width = strength.width;
+    strengthBar.className = `h-2 transition-all duration-200 ${strength.colorClass}`;
+}
 
 if (token) {
     showApp();
@@ -127,6 +161,11 @@ btnCheck.addEventListener('click', async () => {
             resLeak.className = 'text-sm mt-2 font-bold text-green-600';
         }
 
+        const backendStrength = getStrengthByScore(data.score);
+        strengthLabel.textContent = `${backendStrength.label} (${data.score}/4)`;
+        strengthBar.style.width = backendStrength.width;
+        strengthBar.className = `h-2 transition-all duration-200 ${backendStrength.colorClass}`;
+
         loadHistory();
         checkPasswordInput.value = '';
     } else if (res.status === 401) {
@@ -134,7 +173,13 @@ btnCheck.addEventListener('click', async () => {
     }
 });
 
+checkPasswordInput.addEventListener('input', (event) => {
+    renderStrengthPreview(event.target.value);
+});
+
 btnRefreshHistory.addEventListener('click', loadHistory);
+
+renderStrengthPreview('');
 
 async function loadHistory() {
     const res = await fetch(`${baseUrl}/password/history`, {
