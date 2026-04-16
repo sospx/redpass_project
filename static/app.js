@@ -1,7 +1,7 @@
 const baseUrl = 'http://127.0.0.1:8000';
-const btnClearHistory = document.getElementById('btn-clear-history');
 let token = localStorage.getItem('token');
 
+// --- DOM Элементы ---
 const authSection = document.getElementById('auth-section');
 const appSection = document.getElementById('app-section');
 const authError = document.getElementById('auth-error');
@@ -23,19 +23,20 @@ const resLeak = document.getElementById('res-leak');
 const historyTableBody = document.getElementById('history-table-body');
 const btnRefreshHistory = document.getElementById('btn-refresh-history');
 
+// Элемент очистки истории
+const btnClearHistory = document.getElementById('btn-clear-history');
+
+// Элементы для глазика (будут работать, если ты добавил их в HTML)
+const btnToggleVisibility = document.getElementById('btn-toggle-visibility');
+const iconEyeClosed = document.getElementById('icon-eye-closed');
+const iconEyeOpen = document.getElementById('icon-eye-open');
+
+// --- Утилиты ---
 function getStrengthByScore(score) {
-    if (score <= 0) {
-        return { label: 'Критически слабый', width: '20%', colorClass: 'bg-red-600' };
-    }
-    if (score === 1) {
-        return { label: 'Низкая стойкость', width: '40%', colorClass: 'bg-orange-500' };
-    }
-    if (score === 2) {
-        return { label: 'Умеренная стойкость', width: '60%', colorClass: 'bg-amber-500' };
-    }
-    if (score === 3) {
-        return { label: 'Высокая стойкость', width: '80%', colorClass: 'bg-lime-500' };
-    }
+    if (score <= 0) return { label: 'Критически слабый', width: '20%', colorClass: 'bg-red-600' };
+    if (score === 1) return { label: 'Низкая стойкость', width: '40%', colorClass: 'bg-orange-500' };
+    if (score === 2) return { label: 'Умеренная стойкость', width: '60%', colorClass: 'bg-amber-500' };
+    if (score === 3) return { label: 'Высокая стойкость', width: '80%', colorClass: 'bg-lime-500' };
     return { label: 'Максимальная стойкость', width: '100%', colorClass: 'bg-green-600' };
 }
 
@@ -55,6 +56,7 @@ function renderStrengthPreview(password) {
     strengthBar.className = `h-2 transition-all duration-200 ${strength.colorClass}`;
 }
 
+// --- Инициализация ---
 if (token) {
     showApp();
 } else {
@@ -70,7 +72,6 @@ function showApp() {
     authSection.classList.add('hidden');
     appSection.classList.remove('hidden');
 
-    // Достаем email из токена
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         userEmailDisplay.textContent = payload.sub;
@@ -85,7 +86,7 @@ function showError(msg) {
     authError.classList.remove('hidden');
 }
 
-
+// --- Авторизация ---
 btnRegister.addEventListener('click', async () => {
     authError.classList.add('hidden');
     const res = await fetch(`${baseUrl}/auth/register`, {
@@ -130,7 +131,22 @@ btnLogout.addEventListener('click', () => {
     showAuth();
 });
 
-// --- ЛОГИКА ПРОВЕРКИ ПАРОЛЯ ---
+// --- Глазик для скрытия/показа пароля ---
+if (btnToggleVisibility && iconEyeClosed && iconEyeOpen) {
+    btnToggleVisibility.addEventListener('click', () => {
+        if (checkPasswordInput.type === 'password') {
+            checkPasswordInput.type = 'text';
+            iconEyeClosed.classList.add('hidden');
+            iconEyeOpen.classList.remove('hidden');
+        } else {
+            checkPasswordInput.type = 'password';
+            iconEyeOpen.classList.add('hidden');
+            iconEyeClosed.classList.remove('hidden');
+        }
+    });
+}
+
+// --- Проверка пароля ---
 btnCheck.addEventListener('click', async () => {
     const pwd = checkPasswordInput.value;
     if (!pwd) return;
@@ -177,34 +193,32 @@ checkPasswordInput.addEventListener('input', (event) => {
     renderStrengthPreview(event.target.value);
 });
 
+// --- История ---
 btnRefreshHistory.addEventListener('click', loadHistory);
 
-renderStrengthPreview('');
+// Защита от ошибки, если кнопка btnClearHistory не найдена в HTML
+if (btnClearHistory) {
+    btnClearHistory.addEventListener('click', async () => {
+        const isConfirmed = confirm('Вы уверены, что хотите удалить всю историю проверок? Это действие нельзя отменить.');
 
-btnClearHistory.addEventListener('click', async () => {
-    // 1. Спрашиваем подтверждение, чтобы юзер не удалил историю случайным кликом
-    const isConfirmed = confirm('Вы уверены, что хотите удалить всю историю проверок? Это действие нельзя отменить.');
+        if (!isConfirmed) return;
 
-    if (!isConfirmed) return;
+        const res = await fetch(`${baseUrl}/password/history`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
 
-    // 2. Отправляем DELETE запрос
-    const res = await fetch(`${baseUrl}/password/history`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`
+        if (res.ok) {
+            loadHistory();
+        } else if (res.status === 401) {
+            btnLogout.click();
+        } else {
+            alert('Не удалось очистить историю. Попробуйте позже.');
         }
     });
-
-    if (res.ok) {
-        // 3. Если сервер удалил данные, просто вызываем загрузку истории
-        // Она обратится к пустой базе и сама очистит таблицу на экране
-        loadHistory();
-    } else if (res.status === 401) {
-        btnLogout.click(); // Если токен протух, выкидываем на логин
-    } else {
-        alert('Не удалось очистить историю. Попробуйте позже.');
-    }
-});
+}
 
 async function loadHistory() {
     const res = await fetch(`${baseUrl}/password/history`, {
@@ -227,3 +241,5 @@ async function loadHistory() {
         });
     }
 }
+
+renderStrengthPreview('');
