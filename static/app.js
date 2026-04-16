@@ -1,4 +1,5 @@
 const baseUrl = 'http://127.0.0.1:8000';
+const btnClearHistory = document.getElementById('btn-clear-history');
 let token = localStorage.getItem('token');
 
 const authSection = document.getElementById('auth-section');
@@ -179,6 +180,31 @@ checkPasswordInput.addEventListener('input', (event) => {
 btnRefreshHistory.addEventListener('click', loadHistory);
 
 renderStrengthPreview('');
+
+btnClearHistory.addEventListener('click', async () => {
+    // 1. Спрашиваем подтверждение, чтобы юзер не удалил историю случайным кликом
+    const isConfirmed = confirm('Вы уверены, что хотите удалить всю историю проверок? Это действие нельзя отменить.');
+
+    if (!isConfirmed) return;
+
+    // 2. Отправляем DELETE запрос
+    const res = await fetch(`${baseUrl}/password/history`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (res.ok) {
+        // 3. Если сервер удалил данные, просто вызываем загрузку истории
+        // Она обратится к пустой базе и сама очистит таблицу на экране
+        loadHistory();
+    } else if (res.status === 401) {
+        btnLogout.click(); // Если токен протух, выкидываем на логин
+    } else {
+        alert('Не удалось очистить историю. Попробуйте позже.');
+    }
+});
 
 async function loadHistory() {
     const res = await fetch(`${baseUrl}/password/history`, {

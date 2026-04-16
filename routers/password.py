@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from db.database import async_session_maker
 from db.models import User, CheckHistory
 from schemas.password import PasswordCheckRequest, PasswordCheckResponse, CheckHistoryResponse
@@ -85,3 +85,18 @@ async def get_history(
     )
     history = result.scalars().all()
     return history
+
+
+@router.delete("/history")
+async def clear_history(
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+):
+    """
+    Удаляет всю историю проверок текущего авторизованного пользователя.
+    """
+    await db.execute(
+        delete(CheckHistory).where(CheckHistory.user_id == current_user.id)
+    )
+    await db.commit()
+    return {"detail": "История успешно очищена"}
