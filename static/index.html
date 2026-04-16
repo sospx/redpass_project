@@ -18,12 +18,12 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
+<body class="bg-red-100 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
 
     <div class="max-w-xl w-full space-y-8">
         <div class="text-center">
-            <h1 class="text-4xl font-extrabold text-blue-600 tracking-tight">Redpass</h1>
-            <p class="mt-2 text-sm text-gray-500">Узнай, насколько надежен твой пароль</p>
+            <h1 class="text-4xl font-extrabold text-red-700 tracking-tight">Redpass</h1>
+            <p class="mt-2 text-sm text-red-600">Узнай, насколько надежен твой пароль</p>
         </div>
 
         <div id="auth-section" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
@@ -33,17 +33,17 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="you@example.com">
+                    <input type="email" id="email" class="mt-1 block w-full px-3 py-2 border border-red-200 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" placeholder="you@example.com">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Пароль (от аккаунта)</label>
-                    <input type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="••••••••">
+                    <input type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-red-200 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" placeholder="••••••••">
                 </div>
                 <div class="flex space-x-4 pt-2">
-                    <button id="btn-login" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
+                    <button id="btn-login" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none">
                         Войти
                     </button>
-                    <button id="btn-register" class="w-full flex justify-center py-2 px-4 border border-blue-600 rounded-md shadow-sm text-sm font-medium text-blue-600 bg-white hover:bg-blue-50 focus:outline-none">
+                    <button id="btn-register" class="w-full flex justify-center py-2 px-4 border border-red-600 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none">
                         Регистрация
                     </button>
                 </div>
@@ -60,8 +60,8 @@
             <div class="bg-white p-8 rounded-xl shadow-lg space-y-4">
                 <h2 class="text-xl font-bold">Проверка пароля</h2>
                 <div class="flex space-x-2">
-                    <input type="text" id="check-password-input" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Введите пароль для проверки...">
-                    <button id="btn-check" class="py-2 px-6 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium shadow-sm transition-colors">
+                    <input type="text" id="check-password-input" class="block w-full px-3 py-2 border border-red-200 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" placeholder="Введите пароль для проверки...">
+                    <button id="btn-check" class="py-2 px-6 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium shadow-sm transition-colors">
                         Проверить
                     </button>
                 </div>
@@ -77,7 +77,7 @@
             <div class="bg-white p-8 rounded-xl shadow-lg">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold">История проверок</h2>
-                    <button id="btn-refresh-history" class="text-sm text-blue-600 hover:underline">Обновить</button>
+                    <button id="btn-refresh-history" class="text-sm text-red-700 hover:underline">Обновить</button>
                 </div>
                 <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
                     <table class="min-w-full divide-y divide-gray-300">
