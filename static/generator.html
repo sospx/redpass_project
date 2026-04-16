@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redpass - Генератор паролей</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
+
+    <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center space-y-6">
+        <h1 class="text-3xl font-extrabold text-blue-600">Генератор паролей</h1>
+        <p class="text-sm text-gray-500">Надёжные пароли одним нажатием</p>
+
+        <div class="mt-4">
+            <div class="bg-gray-100 p-4 rounded-lg font-mono text-xl break-all" id="passwordDisplay">
+                Нажмите «Сгенерировать»
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="generateBtn" class="py-2 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition">
+                Сгенерировать
+            </button>
+            <button id="copyBtn" class="py-2 px-6 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg shadow transition">
+                Скопировать
+            </button>
+        </div>
+
+        <p id="copyMessage" class="text-sm text-green-600 h-6"></p>
+    </div>
+
+    <script>
+        const passwordDisplay = document.getElementById('passwordDisplay');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyMessage = document.getElementById('copyMessage');
+
+        function generatePassword() {
+            const length = 14;
+            const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            const lower = 'abcdefghijkmnopqrstuvwxyz';
+            const digits = '23456789';
+            const symbols = '!@#$%^&*()_+';
+
+            let chars = upper + lower + digits + symbols;
+            let password = '';
+
+            password += upper[Math.floor(Math.random() * upper.length)];
+            password += lower[Math.floor(Math.random() * lower.length)];
+            password += digits[Math.floor(Math.random() * digits.length)];
+            password += symbols[Math.floor(Math.random() * symbols.length)];
+
+            for (let i = password.length; i < length; i++) {
+                password += chars[Math.floor(Math.random() * chars.length)];
+            }
+
+            password = password.split('').sort(() => Math.random() - 0.5).join('');
+            return password;
+        }
+
+        async function copyToClipboard() {
+            const password = passwordDisplay.innerText;
+            if (!password || password === 'Нажмите «Сгенерировать»') {
+                copyMessage.innerText = 'Сначала сгенерируйте пароль';
+                setTimeout(() => copyMessage.innerText = '', 1500);
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(password);
+                copyMessage.innerText = 'Пароль скопирован!';
+                setTimeout(() => copyMessage.innerText = '', 1500);
+            } catch (err) {
+                copyMessage.innerText = 'Не удалось скопировать';
+                setTimeout(() => copyMessage.innerText = '', 1500);
+            }
+        }
+
+        generateBtn.addEventListener('click', () => {
+            passwordDisplay.innerText = generatePassword();
+        });
+
+        copyBtn.addEventListener('click', copyToClipboard);
+    </script>
+</body>
+</html>
