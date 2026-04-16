@@ -24,23 +24,23 @@ const btnRefreshHistory = document.getElementById('btn-refresh-history');
 
 function getStrengthByScore(score) {
     if (score <= 0) {
-        return { label: 'Очень слабый', width: '20%', colorClass: 'bg-red-600' };
+        return { label: 'Критически слабый', width: '20%', colorClass: 'bg-red-600' };
     }
     if (score === 1) {
-        return { label: 'Слабый', width: '40%', colorClass: 'bg-orange-500' };
+        return { label: 'Низкая стойкость', width: '40%', colorClass: 'bg-orange-500' };
     }
     if (score === 2) {
-        return { label: 'Средний', width: '60%', colorClass: 'bg-amber-500' };
+        return { label: 'Умеренная стойкость', width: '60%', colorClass: 'bg-amber-500' };
     }
     if (score === 3) {
-        return { label: 'Надежный', width: '80%', colorClass: 'bg-lime-500' };
+        return { label: 'Высокая стойкость', width: '80%', colorClass: 'bg-lime-500' };
     }
-    return { label: 'Очень надежный', width: '100%', colorClass: 'bg-green-600' };
+    return { label: 'Максимальная стойкость', width: '100%', colorClass: 'bg-green-600' };
 }
 
 function renderStrengthPreview(password) {
     if (!password) {
-        strengthLabel.textContent = 'Пока не оценено';
+        strengthLabel.textContent = 'Начните вводить пароль';
         strengthBar.style.width = '0%';
         strengthBar.className = 'h-2 w-0 bg-gray-400 transition-all duration-200';
         return;
