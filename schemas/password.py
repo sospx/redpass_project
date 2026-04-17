@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
 class PasswordCheckRequest(BaseModel):
-    password: str
+    password: str = Field(..., max_length=72)
 
 
 class PasswordCheckResponse(BaseModel):
