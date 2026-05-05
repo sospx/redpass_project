@@ -1,6 +1,13 @@
 import hashlib
 import httpx
+import redis.asyncio as redis
+import os
 from zxcvbn import zxcvbn
+from dotenv import load_dotenv
+
+load_dotenv()
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 
 def mask_password(password: str) -> str:
@@ -21,6 +28,13 @@ async def check_leaks(password: str) -> int:
     sha1_hash = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
     prefix = sha1_hash[:5]
     suffix = sha1_hash[5:]
+
+    # Пытаемся получить данные из Redis кеш на 24 часа
+    cache_key = f"leak:{sha1_hash}"
+    cached_count = await redis_client.get(cache_key)
+    if cached_count is not None:
+        return int(cached_count)
+
     url = f"https://api.pwnedpasswords.com/range/{prefix}"
     headers = {"User-Agent": "Redpass-FastAPI-Project"}
 
@@ -34,7 +48,12 @@ async def check_leaks(password: str) -> int:
             return 0
 
     hashes = (line.split(':') for line in response.text.splitlines())
+    found_count = 0
     for h, count in hashes:
         if h == suffix:
-            return int(count)
-    return 0
+            found_count = int(count)
+            break
+
+    # Сохраняем в кеш Redis на 1 сутки
+    await redis_client.setex(cache_key, 86400, str(found_count))
+    return found_count
