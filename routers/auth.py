@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -6,8 +6,10 @@ from db.database import async_session_maker
 from db.models import User
 from schemas.user import UserCreate, UserResponse, Token
 from core.security import get_password_hash, verify_password, create_access_token
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
-
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
@@ -17,7 +19,8 @@ async def get_db():
 
 
 @router.post("/register", response_model=UserResponse)
-async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     # Проверяем, нет ли уже такого email в базе
     result = await db.execute(select(User).where(User.email == user_data.email))
     existing_user = result.scalars().first()
@@ -36,7 +39,8 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalars().first()
     # Проверяем, есть ли юзер и совпадает ли пароль
