@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,8 +9,10 @@ from schemas.password import PasswordCheckRequest, PasswordCheckResponse, CheckH
 from core.checker import analyze_strength, check_leaks, mask_password
 from core.security import SECRET_KEY, ALGORITHM
 from routers.auth import get_db
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
-
+limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(prefix="/password", tags=["Password Check"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -40,14 +42,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
 
 
 @router.post("/check", response_model=PasswordCheckResponse)
+@limiter.limit("20/minute")
 async def check_password(
-        request: PasswordCheckRequest,
+        request: Request,
+        password_data: PasswordCheckRequest,
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
 ):
-    strength_data = analyze_strength(request.password)
-    leak_count = await check_leaks(request.password)
-    masked = mask_password(request.password)
+    strength_data = analyze_strength(password_data.password)
+    leak_count = await check_leaks(password_data.password)
+    masked = mask_password(password_data.password)
     is_leaked = leak_count > 0
 
     history_record = CheckHistory(
@@ -71,7 +75,9 @@ async def check_password(
 
 
 @router.get("/history", response_model=list[CheckHistoryResponse])
+@limiter.limit("30/minute")
 async def get_history(
+        request: Request,
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
 ):
@@ -88,7 +94,9 @@ async def get_history(
 
 
 @router.delete("/history")
+@limiter.limit("5/minute")
 async def clear_history(
+        request: Request,
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
 ):
