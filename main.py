@@ -6,8 +6,9 @@ from routers import auth, password
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+import redis.asyncio as redis
+import os
 
-# Инициализация лимитера, определяющего клиента по IP
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
@@ -16,7 +17,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -24,11 +24,15 @@ app.include_router(auth.router)
 app.include_router(password.router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.on_event("startup")
+async def startup_event():
+    # Проверка соединения с Redis при старте
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    app.state.redis = redis.from_url(REDIS_URL)
 
 @app.get("/")
 async def root():
     return FileResponse("static/index.html")
-
 
 @app.get("/generator", response_class=HTMLResponse)
 async def generator_page():
