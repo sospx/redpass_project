@@ -32,3 +32,4 @@ typing_extensions==4.15.0
 uliweb-alembic==0.6.9
 uvicorn==0.42.0
 zxcvbn==4.5.0
+slowapi==0.1.9
