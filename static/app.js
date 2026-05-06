@@ -44,7 +44,7 @@ function renderStrengthPreview(password) {
     if (!password) {
         strengthLabel.textContent = 'Начните вводить пароль';
         strengthBar.style.width = '0%';
-        strengthBar.className = 'h-2 w-0 bg-gray-400 transition-all duration-200';
+            strengthBar.className = 'h-full w-0 bg-gray-400 transition-all duration-200';
         return;
     }
 
@@ -53,7 +53,7 @@ function renderStrengthPreview(password) {
 
     strengthLabel.textContent = `${strength.label} (${score}/4)`;
     strengthBar.style.width = strength.width;
-    strengthBar.className = `h-2 transition-all duration-200 ${strength.colorClass}`;
+        strengthBar.className = `h-full transition-all duration-200 ${strength.colorClass}`;
 }
 
 // --- Инициализация ---
@@ -181,7 +181,7 @@ btnCheck.addEventListener('click', async () => {
         const backendStrength = getStrengthByScore(data.score);
         strengthLabel.textContent = `${backendStrength.label} (${data.score}/4)`;
         strengthBar.style.width = backendStrength.width;
-        strengthBar.className = `h-2 transition-all duration-200 ${backendStrength.colorClass}`;
+        strengthBar.className = `h-full transition-all duration-200 ${backendStrength.colorClass}`;
 
         loadHistory();
     } else if (res.status === 401) {
@@ -199,9 +199,7 @@ btnRefreshHistory.addEventListener('click', loadHistory);
 // Защита от ошибки, если кнопка btnClearHistory не найдена в HTML
 if (btnClearHistory) {
     btnClearHistory.addEventListener('click', async () => {
-        const isConfirmed = confirm('Вы уверены, что хотите удалить всю историю проверок? Это действие нельзя отменить.');
-
-        if (!isConfirmed) return;
+        if (!confirm('Удалить всю историю?')) return;
 
         const res = await fetch(`${baseUrl}/password/history`, {
             method: 'DELETE',
@@ -210,13 +208,7 @@ if (btnClearHistory) {
             }
         });
 
-        if (res.ok) {
-            loadHistory();
-        } else if (res.status === 401) {
-            btnLogout.click();
-        } else {
-            alert('Не удалось очистить историю. Попробуйте позже.');
-        }
+        if (res.ok) { loadHistory(); }
     });
 }
 
@@ -230,11 +222,12 @@ async function loadHistory() {
 
         history.forEach(item => {
             const tr = document.createElement('tr');
+            tr.className = "text-sm";
             tr.innerHTML = `
-                <td class="px-3 py-3 text-sm text-gray-700 font-mono">${item.masked_password}</td>
-                <td class="px-3 py-3 text-sm text-gray-700 font-bold">${item.score} / 4</td>
-                <td class="px-3 py-3 text-sm ${item.is_leaked ? 'text-red-600 font-bold' : 'text-green-600'}">
-                    ${item.is_leaked ? 'Слит (' + item.leak_count + ')' : 'Чисто'}
+                <td class="py-3 px-2 font-mono text-slate-500">${item.masked_password}</td>
+                <td class="py-3 px-2 font-bold">${item.score}/4</td>
+                <td class="py-3 px-2 text-right ${item.is_leaked ? 'text-red-600 font-bold' : 'text-green-600'}">
+                    ${item.is_leaked ? 'Утечка' : 'ОК'}
                 </td>
             `;
             historyTableBody.appendChild(tr);
