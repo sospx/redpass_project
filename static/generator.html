@@ -5,8 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redpass - Генератор паролей</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
 </head>
-<body class="bg-red-100 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800">
+<body class="bg-red-100 dark:bg-gray-900 min-h-screen flex items-center justify-center p-4 font-sans text-gray-800 dark:text-gray-200">
     <div class="fixed top-6 left-6">
         <a href="/" class="group flex items-center gap-2 py-2 px-4 bg-white/80 backdrop-blur-sm border border-red-200 text-red-700 hover:bg-red-600 hover:text-white font-medium rounded-full shadow-sm transition-all duration-300">
             <svg class="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -16,11 +24,11 @@
         </a>
     </div>
 
-    <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center space-y-6 border border-red-200">
-        <h1 class="text-3xl font-extrabold text-red-700">Генератор паролей</h1>
-        <p class="text-sm text-red-600">Надёжные пароли одним нажатием</p>
+    <div class="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg text-center space-y-6 border border-red-200 dark:border-gray-700">
+        <h1 class="text-3xl font-extrabold text-red-700 dark:text-red-500">Генератор паролей</h1>
+        <p class="text-sm text-red-600 dark:text-red-400">Надёжные пароли одним нажатием</p>
         <div class="mt-4">
-            <div class="bg-red-50 border border-red-200 p-4 rounded-lg font-mono text-xl break-all" id="passwordDisplay">
+            <div class="bg-red-50 dark:bg-gray-900 border border-red-200 dark:border-gray-700 p-4 rounded-lg font-mono text-xl break-all" id="passwordDisplay">
                 Нажмите «Сгенерировать»
             </div>
         </div>
@@ -28,11 +36,11 @@
             <button id="generateBtn" class="py-2 px-6 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow transition">
                 Сгенерировать
             </button>
-            <button id="copyBtn" class="py-2 px-6 border border-red-600 text-red-700 bg-white hover:bg-red-50 font-medium rounded-lg shadow transition">
+            <button id="copyBtn" class="py-2 px-6 border border-red-600 text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-gray-700 font-medium rounded-lg shadow transition">
                 Скопировать
             </button>
         </div>
-        <p id="copyMessage" class="text-sm text-green-600 h-6"></p>
+        <p id="copyMessage" class="text-sm text-green-600 dark:text-green-400 h-6"></p>
     </div>
     <script>
         const passwordDisplay = document.getElementById('passwordDisplay');
