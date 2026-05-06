@@ -22,14 +22,7 @@ const resTime = document.getElementById('res-time');
 const resLeak = document.getElementById('res-leak');
 const historyTableBody = document.getElementById('history-table-body');
 const btnRefreshHistory = document.getElementById('btn-refresh-history');
-
-// Элемент очистки истории
 const btnClearHistory = document.getElementById('btn-clear-history');
-
-// Элементы для глазика (будут работать, если ты добавил их в HTML)
-const btnToggleVisibility = document.getElementById('btn-toggle-visibility');
-const iconEyeClosed = document.getElementById('icon-eye-closed');
-const iconEyeOpen = document.getElementById('icon-eye-open');
 
 // --- Утилиты ---
 function getStrengthByScore(score) {
@@ -56,7 +49,6 @@ function renderStrengthPreview(password) {
         strengthBar.className = `h-full transition-all duration-200 ${strength.colorClass}`;
 }
 
-// --- Инициализация ---
 if (token) {
     showApp();
 } else {
@@ -86,7 +78,6 @@ function showError(msg) {
     authError.classList.remove('hidden');
 }
 
-// --- Авторизация ---
 btnRegister.addEventListener('click', async () => {
     authError.classList.add('hidden');
     const res = await fetch(`${baseUrl}/auth/register`, {
@@ -130,23 +121,6 @@ btnLogout.addEventListener('click', () => {
     checkResult.classList.add('hidden');
     showAuth();
 });
-
-// --- Глазик для скрытия/показа пароля ---
-if (btnToggleVisibility && iconEyeClosed && iconEyeOpen) {
-    btnToggleVisibility.addEventListener('click', () => {
-        if (checkPasswordInput.type === 'password') {
-            checkPasswordInput.type = 'text';
-            iconEyeClosed.classList.add('hidden');
-            iconEyeOpen.classList.remove('hidden');
-        } else {
-            checkPasswordInput.type = 'password';
-            iconEyeOpen.classList.add('hidden');
-            iconEyeClosed.classList.remove('hidden');
-        }
-    });
-}
-
-// --- Проверка пароля ---
 btnCheck.addEventListener('click', async () => {
     const pwd = checkPasswordInput.value;
     if (!pwd) return;
@@ -193,10 +167,7 @@ checkPasswordInput.addEventListener('input', (event) => {
     renderStrengthPreview(event.target.value);
 });
 
-// --- История ---
 btnRefreshHistory.addEventListener('click', loadHistory);
-
-// Защита от ошибки, если кнопка btnClearHistory не найдена в HTML
 if (btnClearHistory) {
     btnClearHistory.addEventListener('click', async () => {
         if (!confirm('Удалить всю историю?')) return;
