@@ -26,9 +26,7 @@
             <span class="text-2xl font-black tracking-tighter uppercase dark:text-white">Red<span class="text-red-600">pass</span></span>
         </div>
         <button id="theme-toggle" class="p-2 rounded-xl bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 shadow-sm transition-all">
-            <svg class="w-6 h-6 text-slate-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-            </svg>
+            <svg class="w-6 h-6 text-slate-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
         </button>
     </nav>
 
@@ -77,52 +75,51 @@
         const copyBtn = document.getElementById('copyBtn');
         const copyMessage = document.getElementById('copyMessage');
 
-        function generatePassword() {
-            const length = 14;
-            const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-            const lower = 'abcdefghijkmnopqrstuvwxyz';
-            const digits = '23456789';
-            const symbols = '!@#$%^&*()_+';
+        const charset = {
+            upper: 'ABCDEFGHJKLMNPQRSTUVWXYZ',
+            lower: 'abcdefghijkmnopqrstuvwxyz',
+            digits: '23456789',
+            symbols: '!@#$%^&*()_+'
+        };
 
-            let chars = upper + lower + digits + symbols;
-            let password = '';
+        const getRandom = (str) => str[Math.floor(Math.random() * str.length)];
 
-            password += upper[Math.floor(Math.random() * upper.length)];
-            password += lower[Math.floor(Math.random() * lower.length)];
-            password += digits[Math.floor(Math.random() * digits.length)];
-            password += symbols[Math.floor(Math.random() * symbols.length)];
-
-            for (let i = password.length; i < length; i++) {
-                password += chars[Math.floor(Math.random() * chars.length)];
-            }
-
-            password = password.split('').sort(() => Math.random() - 0.5).join('');
-            return password;
+        function leetify(word) {
+            const rules = { 'a': '@', 'e': '3', 'i': '1', 'o': '0', 's': '$', 't': '7', 'b': '8' };
+            return word.split('').map(c => (rules[c.toLowerCase()] && Math.random() < 0.6) ? rules[c.toLowerCase()] : c).join('');
         }
 
-        async function copyToClipboard() {
-            const password = passwordDisplay.innerText;
-            if (password === '••••••••••••••••') {
-                copyMessage.innerText = 'Сначала создайте пароль';
-                setTimeout(() => copyMessage.innerText = '', 1500);
-                return;
-            }
+        function generateSecurePassword(keyword) {
+            let base = keyword ? leetify(keyword.trim()) : "";
+            const minTotalLength = 16;
+            let securePrefix = getRandom(charset.upper) + getRandom(charset.symbols) + getRandom(charset.digits);
+            let secureSuffix = getRandom(charset.digits) + getRandom(charset.symbols) + getRandom(charset.upper);
 
-            try {
-                await navigator.clipboard.writeText(password);
-                copyMessage.innerText = 'Пароль скопирован!';
-                setTimeout(() => copyMessage.innerText = '', 1500);
-            } catch (err) {
-                copyMessage.innerText = 'Не удалось скопировать';
-                setTimeout(() => copyMessage.innerText = '', 1500);
+            let result = Math.random() > 0.5
+                ? securePrefix + base + secureSuffix
+                : base.slice(0, Math.floor(base.length/2)) + securePrefix + secureSuffix + base.slice(Math.floor(base.length/2));
+
+            const allChars = Object.values(charset).join('');
+            while (result.length < minTotalLength) {
+                result += getRandom(allChars);
             }
+            if (!/[!@#$%^&*()_+]/.test(result)) result += getRandom(charset.symbols);
+            return result;
         }
 
         generateBtn.addEventListener('click', () => {
-            passwordDisplay.innerText = generatePassword();
+            passwordDisplay.innerText = generateSecurePassword(keywordInput.value);
         });
 
-        copyBtn.addEventListener('click', copyToClipboard);
+        copyBtn.addEventListener('click', async () => {
+            const pass = passwordDisplay.innerText;
+            if (pass.includes('•')) return;
+            try {
+                await navigator.clipboard.writeText(pass);
+                copyMessage.innerText = 'Пароль скопирован!';
+                setTimeout(() => copyMessage.innerText = '', 2000);
+            } catch (e) {}
+        });
     </script>
 </body>
 </html>
