@@ -18,3 +18,16 @@ services:
     restart: always
     ports:
       - "6379:6379"
+
+  app:
+    build: .
+    container_name: redpass_app
+    restart: always
+    ports:
+      - "80:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432/password_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
