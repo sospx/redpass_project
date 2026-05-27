@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from starlette.responses import FileResponse
 from routers import auth, password
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -41,3 +41,23 @@ async def root():
 async def generator_page():
     with open("static/generator.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
+
+
+@app.get("/about")
+def get_about():
+    return FileResponse("static/about.html")
+
+
+@app.get("/support")
+def get_support():
+    return FileResponse("static/support.html")
+
+
+@app.get("/faq")
+def get_faq():
+    return FileResponse("static/faq.html")
+
+
+@app.get("/privacy")
+def get_privacy():
+    return FileResponse("static/privacy.html")
