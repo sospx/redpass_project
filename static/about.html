@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redpass — О проекте</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brandDark: '#0D0D0D',
+                        brandCard: '#141414',
+                    }
+                }
+            }
+        }
+        if (localStorage.theme === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="bg-slate-50 dark:bg-brandDark text-slate-900 dark:text-slate-100 min-h-screen font-sans flex flex-col justify-between transition-colors duration-300">
+
+    <nav class="max-w-xl mx-auto w-full px-6 py-6 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <span class="text-xl font-black tracking-tighter uppercase">Red<span class="text-red-600">pass</span></span>
+        </div>
+
+        <button id="theme-toggle" class="p-2 rounded-xl bg-white dark:bg-brandCard border border-slate-200 dark:border-white/10 text-slate-600 dark:text-red-500 hover:scale-105 transition-all shadow-sm">
+            <svg id="theme-icon-dark" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 2.293a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM16 10a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM14.707 14.707a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.293 14.707a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM4 10a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zM5.293 5.293a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM10 5a5 5 0 100 10 5 5 0 000-10z"></path></svg>
+            <svg id="theme-icon-light" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </nav>
+
+    <main class="flex-1 flex items-center justify-center p-6 w-full">
+        <div class="max-w-md w-full space-y-4">
+            <div class="bg-white dark:bg-brandCard p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/5 space-y-5">
+                <div class="space-y-1 text-center">
+                    <h1 class="text-xl font-extrabold tracking-tight uppercase">О проекте</h1>
+                    <p class="text-xs text-slate-500">Система RedPass</p>
+                </div>
+
+                <div class="space-y-4 text-sm font-mono leading-relaxed text-slate-600 dark:text-slate-400">
+                    <p>
+                        <span class="text-red-600 font-bold">RedPass</span> — это современный анализатор устойчивости паролей, созданный для оперативной проверки учетных данных на предмет компрометации в глобальных базах утечек.
+                    </p>
+                    <p>
+                        Мы используем передовые алгоритмы локального скоринга энтропии (zxcvbn) и безопасные гибридные методы сверки хэшей, гарантируя, что ваши реальные пароли никогда не покинут пределы вашего устройства в открытом виде.
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <a href="/" class="block w-full py-3.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl text-center shadow-lg transition-all active:scale-95 uppercase tracking-wider text-xs">
+                        На главную
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-200 dark:border-white/5 bg-white dark:bg-brandCard mt-24 py-8 px-6 text-center text-xs text-slate-500 w-full">
+        <div class="max-w-xl mx-auto space-y-4">
+            <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-bold uppercase tracking-wider text-[10px]">
+                <a href="/" class="hover:text-red-600 transition-colors">Главная</a>
+                <a href="/generator" class="hover:text-red-600 transition-colors">Генератор</a>
+                <a href="/about" class="text-red-600 transition-colors">О нас</a>
+                <a href="/support" class="hover:text-red-600 transition-colors">Поддержка</a>
+                <a href="/faq" class="hover:text-red-600 transition-colors">FAQ</a>
+                <a href="/privacy" class="hover:text-red-600 transition-colors">Конфиденциальность</a>
+            </div>
+            <p class="tracking-wide text-slate-400 dark:text-slate-600">© RedPass 2026 R. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+    </script>
+</body>
+</html>
