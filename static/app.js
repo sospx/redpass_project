@@ -24,20 +24,25 @@ const historyTableBody = document.getElementById('history-table-body');
 const btnRefreshHistory = document.getElementById('btn-refresh-history');
 const btnClearHistory = document.getElementById('btn-clear-history');
 
-// --- Утилиты ---
+// --- Конфигуратор Стойкости ---
 function getStrengthByScore(score) {
-    if (score <= 0) return { label: 'Критически слабый', width: '20%', colorClass: 'bg-red-600' };
-    if (score === 1) return { label: 'Низкая стойкость', width: '40%', colorClass: 'bg-orange-500' };
-    if (score === 2) return { label: 'Умеренная стойкость', width: '60%', colorClass: 'bg-amber-500' };
-    if (score === 3) return { label: 'Высокая стойкость', width: '80%', colorClass: 'bg-lime-500' };
-    return { label: 'Максимальная стойкость', width: '100%', colorClass: 'bg-green-600' };
+    switch(score) {
+        case 0: return { label: 'Критически слабый', width: '20%', colorClass: 'bg-red-600' };
+        case 1: return { label: 'Низкая стойкость', width: '40%', colorClass: 'bg-orange-500' };
+        case 2: return { label: 'Умеренная стойкость', width: '60%', colorClass: 'bg-amber-500' };
+        case 3: return { label: 'Высокая стойкость', width: '80%', colorClass: 'bg-lime-500' };
+        case 4: return { label: 'Максимальная стойкость', width: '100%', colorClass: 'bg-green-600' };
+        default: return { label: 'Ожидание ввода', width: '0%', colorClass: 'bg-slate-300' };
+    }
 }
 
+// Рендер предварительной оценки (zxcvbn)
 function renderStrengthPreview(password) {
     if (!password) {
-        strengthLabel.textContent = 'Начните вводить пароль';
+        strengthLabel.textContent = 'Ожидание ввода';
+        strengthLabel.className = 'text-slate-400 transition-colors';
         strengthBar.style.width = '0%';
-            strengthBar.className = 'h-full w-0 bg-gray-400 transition-all duration-200';
+        strengthBar.className = 'h-full w-0 bg-slate-300 transition-all duration-300';
         return;
     }
 
@@ -46,18 +51,14 @@ function renderStrengthPreview(password) {
 
     strengthLabel.textContent = `${strength.label} (${score}/4)`;
     strengthBar.style.width = strength.width;
-        strengthBar.className = `h-full transition-all duration-200 ${strength.colorClass}`;
+    strengthBar.className = `h-full transition-all duration-300 ${strength.colorClass}`;
 }
 
-if (token) {
-    showApp();
-} else {
-    showAuth();
-}
-
+// --- Управление состояниями экранов ---
 function showAuth() {
     authSection.classList.remove('hidden');
     appSection.classList.add('hidden');
+    authError.classList.add('hidden');
 }
 
 function showApp() {
@@ -66,9 +67,9 @@ function showApp() {
 
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        userEmailDisplay.textContent = payload.sub;
+        userEmailDisplay.textContent = payload.sub || "Пользователь";
     } catch (e) {
-        userEmailDisplay.textContent = "Пользователь";
+        userEmailDisplay.textContent = "Авторизован";
     }
     loadHistory();
 }
@@ -78,40 +79,61 @@ function showError(msg) {
     authError.classList.remove('hidden');
 }
 
+// --- Обработчики событий (Авторизация) ---
 btnRegister.addEventListener('click', async () => {
     authError.classList.add('hidden');
-    const res = await fetch(`${baseUrl}/auth/register`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email: emailInput.value, password: passwordInput.value})
-    });
-    if (res.ok) {
-        alert('Успешно! Теперь нажмите "Войти".');
-    } else {
-        const data = await res.json();
-        showError(data.detail || 'Ошибка регистрации');
+    if (!emailInput.value || !passwordInput.value) {
+        showError('Заполните все поля формы');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${baseUrl}/auth/register`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: emailInput.value, password: passwordInput.value})
+        });
+        if (res.ok) {
+            alert('Регистрация успешна! Теперь вы можете войти в систему.');
+        } else {
+            const data = await res.json();
+            showError(data.detail || 'Не удалось зарегистрироваться');
+        }
+    } catch (e) {
+        showError('Сервер недоступен');
     }
 });
 
 btnLogin.addEventListener('click', async () => {
     authError.classList.add('hidden');
+    if (!emailInput.value || !passwordInput.value) {
+        showError('Введите логин и пароль');
+        return;
+    }
+
     const formData = new URLSearchParams();
     formData.append('username', emailInput.value);
     formData.append('password', passwordInput.value);
 
-    const res = await fetch(`${baseUrl}/auth/login`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: formData
-    });
+    try {
+        const res = await fetch(`${baseUrl}/auth/login`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: formData
+        });
 
-    if (res.ok) {
-        const data = await res.json();
-        token = data.access_token;
-        localStorage.setItem('token', token);
-        showApp();
-    } else {
-        showError('Неверный email или пароль');
+        if (res.ok) {
+            const data = await res.json();
+            token = data.access_token;
+            localStorage.setItem('token', token);
+            showApp();
+            emailInput.value = '';
+            passwordInput.value = '';
+        } else {
+            showError('Неверный email или пароль');
+        }
+    } catch (e) {
+        showError('Ошибка сети при авторизации');
     }
 });
 
@@ -119,91 +141,135 @@ btnLogout.addEventListener('click', () => {
     token = null;
     localStorage.removeItem('token');
     checkResult.classList.add('hidden');
+    checkPasswordInput.value = '';
+    renderStrengthPreview('');
     showAuth();
 });
+
+// --- Работа с проверками паролей ---
 btnCheck.addEventListener('click', async () => {
     const pwd = checkPasswordInput.value;
     if (!pwd) return;
 
-    btnCheck.textContent = "Считаем...";
+    btnCheck.textContent = "Анализ...";
+    btnCheck.disabled = true;
 
-    const res = await fetch(`${baseUrl}/password/check`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({password: pwd})
-    });
+    try {
+        const res = await fetch(`${baseUrl}/password/check`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({password: pwd})
+        });
 
-    btnCheck.textContent = "Проверить";
+        btnCheck.textContent = "Проверить";
+        btnCheck.disabled = false;
 
-    if (res.ok) {
-        const data = await res.json();
-        checkResult.classList.remove('hidden');
-        resScore.textContent = data.score;
-        resTime.textContent = data.crack_time;
+        if (res.ok) {
+            const data = await res.json();
+            checkResult.classList.remove('hidden');
+            resScore.textContent = data.score;
+            resTime.textContent = data.crack_time || 'Мгновенно';
 
-        if (data.is_leaked) {
-            resLeak.textContent = `ВНИМАНИЕ! Пароль слит ${data.leak_count} раз!`;
-            resLeak.className = 'text-sm mt-2 font-bold text-red-600';
-        } else {
-            resLeak.textContent = 'Отлично! Пароль не найден в базах утечек.';
-            resLeak.className = 'text-sm mt-2 font-bold text-green-600';
+            // Оформление блока утечек
+            if (data.is_leaked) {
+                resLeak.textContent = `Внимание! Найдено в утечках: ${data.leak_count} раз!`;
+                resLeak.className = 'p-3 rounded-xl font-bold text-center text-xs tracking-wide uppercase bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50';
+            } else {
+                resLeak.textContent = 'Безопасно: пароль отсутствует в базах компрометации.';
+                resLeak.className = 'p-3 rounded-xl font-bold text-center text-xs tracking-wide uppercase bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-900/50';
+            }
+
+            // Синхронизация прогресс-бара по данным от бэкенда
+            const backendStrength = getStrengthByScore(data.score);
+            strengthLabel.textContent = `${backendStrength.label} (${data.score}/4)`;
+            strengthBar.style.width = backendStrength.width;
+            strengthBar.className = `h-full transition-all duration-300 ${backendStrength.colorClass}`;
+
+            loadHistory();
+        } else if (res.status === 401) {
+            btnLogout.click();
         }
-
-        const backendStrength = getStrengthByScore(data.score);
-        strengthLabel.textContent = `${backendStrength.label} (${data.score}/4)`;
-        strengthBar.style.width = backendStrength.width;
-        strengthBar.className = `h-full transition-all duration-200 ${backendStrength.colorClass}`;
-
-        loadHistory();
-    } else if (res.status === 401) {
-        btnLogout.click();
+    } catch (e) {
+        btnCheck.textContent = "Проверить";
+        btnCheck.disabled = false;
+        alert('Не удалось связаться с сервером API');
     }
 });
 
+// Отслеживание ввода для предпросмотра сложности
 checkPasswordInput.addEventListener('input', (event) => {
     renderStrengthPreview(event.target.value);
 });
 
+// --- Работа с историей запросов ---
 btnRefreshHistory.addEventListener('click', loadHistory);
+
 if (btnClearHistory) {
     btnClearHistory.addEventListener('click', async () => {
-        if (!confirm('Удалить всю историю?')) return;
+        if (!confirm('Вы действительно хотите полностью очистить историю ваших проверок?')) return;
 
-        const res = await fetch(`${baseUrl}/password/history`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
+        try {
+            const res = await fetch(`${baseUrl}/password/history`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                loadHistory();
             }
-        });
-
-        if (res.ok) { loadHistory(); }
+        } catch (e) {
+            alert('Ошибка при попытке очистить историю');
+        }
     });
 }
 
 async function loadHistory() {
-    const res = await fetch(`${baseUrl}/password/history`, {
-        headers: {'Authorization': `Bearer ${token}`}
-    });
-    if (res.ok) {
-        const history = await res.json();
-        historyTableBody.innerHTML = '';
-
-        history.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.className = "text-sm";
-            tr.innerHTML = `
-                <td class="py-3 px-2 font-mono text-slate-500">${item.masked_password}</td>
-                <td class="py-3 px-2 font-bold">${item.score}/4</td>
-                <td class="py-3 px-2 text-right ${item.is_leaked ? 'text-red-600 font-bold' : 'text-green-600'}">
-                    ${item.is_leaked ? 'Утечка' : 'ОК'}
-                </td>
-            `;
-            historyTableBody.appendChild(tr);
+    if (!token) return;
+    try {
+        const res = await fetch(`${baseUrl}/password/history`, {
+            headers: {'Authorization': `Bearer ${token}`}
         });
+        if (res.ok) {
+            const history = await res.json();
+            historyTableBody.innerHTML = '';
+
+            if (history.length === 0) {
+                historyTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="py-4 text-center text-xs text-slate-400 italic">История проверок пуста</td>
+                    </tr>`;
+                return;
+            }
+
+            history.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "text-xs hover:bg-slate-100/50 dark:hover:bg-gray-700/30 transition-colors";
+
+                const leakedCell = item.is_leaked
+                    ? `<span class="px-2 py-0.5 rounded-md bg-red-100 dark:bg-red-950/40 text-red-600 font-bold">Утечка</span>`
+                    : `<span class="px-2 py-0.5 rounded-md bg-green-100 dark:bg-green-950/40 text-green-600">Чист</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-2 font-mono text-slate-500 dark:text-slate-400 truncate max-w-[150px]">${item.masked_password}</td>
+                    <td class="py-3 px-2 text-center font-bold dark:text-slate-200">${item.score}/4</td>
+                    <td class="py-3 px-2 text-right">${leakedCell}</td>
+                `;
+                historyTableBody.appendChild(tr);
+            });
+        } else if (res.status === 401) {
+            btnLogout.click();
+        }
+    } catch (e) {
+        console.error('Ошибка загрузки истории:', e);
     }
 }
 
+// --- Первичная сборка состояний при старте ---
+if (token) {
+    showApp();
+} else {
+    showAuth();
+}
 renderStrengthPreview('');

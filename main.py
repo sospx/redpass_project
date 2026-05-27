@@ -24,15 +24,18 @@ app.include_router(auth.router)
 app.include_router(password.router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 @app.on_event("startup")
 async def startup_event():
     # Проверка соединения с Redis при старте
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app.state.redis = redis.from_url(REDIS_URL)
 
+
 @app.get("/")
 async def root():
     return FileResponse("static/index.html")
+
 
 @app.get("/generator", response_class=HTMLResponse)
 async def generator_page():
